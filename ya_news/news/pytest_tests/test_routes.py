@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from news.models import Comment
 
 
-
 @pytest.mark.django_db
 def test_home_page(client):
     url = reverse('news:home')
@@ -25,13 +24,11 @@ def test_news_detail_page(client):
 @pytest.mark.django_db
 def test_comment_edit_available_to_author(client):
     from django.contrib.auth.models import User
-    from news.models import Comment
-    
+    from news.models import Comment   
     author = User.objects.create_user(username='author', password='pass')
     client.login(username='author', password='pass')
     news = News.objects.create(title='Test', text='Test text')
-    comment = Comment.objects.create(news=news, author=author, text='Comment')
-    
+    comment = Comment.objects.create(news=news, author=author, text='Comment')   
     url = reverse('news:edit', args=[comment.id])
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
@@ -40,13 +37,11 @@ def test_comment_edit_available_to_author(client):
 @pytest.mark.django_db
 def test_comment_delete_available_to_author(client):
     from django.contrib.auth.models import User
-    from news.models import Comment
-    
+    from news.models import Comment   
     author = User.objects.create_user(username='author', password='pass')
     client.login(username='author', password='pass')
     news = News.objects.create(title='Test', text='Test text')
-    comment = Comment.objects.create(news=news, author=author, text='Comment')
-    
+    comment = Comment.objects.create(news=news, author=author, text='Comment')   
     url = reverse('news:delete', args=[comment.id])
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
@@ -57,34 +52,26 @@ def test_anonymous_user_redirected_from_comment_edit(client):
     author = User.objects.create_user(username='author', password='pass')
     news = News.objects.create(title='Test', text='Test text')
     comment = Comment.objects.create(news=news, author=author, text='Comment')
-
     url = reverse('news:edit', args=[comment.id])
     response = client.get(url)
-
     # анонимный пользователь должен быть перенаправлен на страницу логина
     assert response.status_code == HTTPStatus.FOUND  # 302
-
 
 
 @pytest.mark.django_db
 def test_user_cannot_edit_other_users_comment(client):
     # Автор комментария
     author = User.objects.create_user(username='author', password='pass')
-
     # Другой пользователь
     other_user = User.objects.create_user(username='other', password='pass')
-
     # Комментарий, который принадлежит author
     news = News.objects.create(title='Test', text='Text')
     comment = Comment.objects.create(news=news, author=author, text='Comment')
-
     # Логинимся под "other"
     client.login(username='other', password='pass')
-
     # Пытаемся редактировать чужой комментарий
     url = reverse('news:edit', args=[comment.id])
     response = client.get(url)
-
     # Должно быть "страница не найдена"
     assert response.status_code == HTTPStatus.NOT_FOUND  # 404
 
