@@ -18,6 +18,7 @@ def test_authenticated_user_can_add_comment(client):
     # просто проверяем, что появился хотя бы один комментарий
     assert Comment.objects.count() == 1
 
+
 @pytest.mark.django_db
 def test_anonymous_user_cannot_add_comment(client):
     news = News.objects.create(title='Test news', text='Some text')
@@ -29,6 +30,7 @@ def test_anonymous_user_cannot_add_comment(client):
 
     # аноним должен быть перенаправлен на страницу логина
     assert response.status_code == HTTPStatus.FOUND  # 302
+
 
 @pytest.mark.django_db
 def test_comment_with_forbidden_words_not_published(client):
@@ -57,12 +59,10 @@ def test_author_can_edit_own_comment(client):
     author = User.objects.create_user(username='author', password='pass')
     client.force_login(author)
     news = News.objects.create(title='Test', text='Test text')
-    comment = Comment.objects.create(news=news, author=author, text='Original text')
-    
+    comment = Comment.objects.create(news=news, author=author, text='Original text')   
     url = reverse('news:edit', args=(comment.id,))
     new_text = 'Updated text'
-    response = client.post(url, {'text': new_text})
-    
+    response = client.post(url, {'text': new_text})   
     assert response.status_code == HTTPStatus.FOUND
     comment.refresh_from_db()
     assert comment.text == new_text
