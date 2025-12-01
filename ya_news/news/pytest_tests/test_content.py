@@ -82,5 +82,28 @@ def test_comments_are_sorted_chronologically(client):
     assert comments == [comment_old, comment_new]
 
 
+@pytest.mark.django_db
+def test_comment_form_availability(client):
+    """
+    Анонимному пользователю недоступна форма для отправки комментария 
+    на странице отдельной новости, а авторизованному доступна.
+    """
+    from news.forms import CommentForm
+    
+    news = News.objects.create(title='Test', text='Test text')
+    url = reverse('news:detail', args=(news.id,))
+    
+    # Проверка для анонимного пользователя
+    response = client.get(url)
+    assert 'form' not in response.context
+    
+    # Проверка для авторизованного пользователя
+    user = User.objects.create_user(username='testuser', password='pass')
+    client.force_login(user)
+    response = client.get(url)
+    assert 'form' in response.context
+    assert isinstance(response.context['form'], CommentForm)
+
+
 
 

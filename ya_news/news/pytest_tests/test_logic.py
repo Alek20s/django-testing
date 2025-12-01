@@ -53,3 +53,20 @@ def test_comment_with_forbidden_words_not_published(client):
     # форма должна содержать ошибку
     assert response.context['form'].errors
 
+
+
+@pytest.mark.django_db
+def test_author_can_edit_own_comment(client):
+    """Авторизованный пользователь может редактировать свои комментарии."""
+    author = User.objects.create_user(username='author', password='pass')
+    client.force_login(author)
+    news = News.objects.create(title='Test', text='Test text')
+    comment = Comment.objects.create(news=news, author=author, text='Original text')
+    
+    url = reverse('news:edit', args=(comment.id,))
+    new_text = 'Updated text'
+    response = client.post(url, {'text': new_text})
+    
+    assert response.status_code == HTTPStatus.FOUND
+    comment.refresh_from_db()
+    assert comment.text == new_text

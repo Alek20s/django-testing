@@ -110,3 +110,11 @@ def test_user_cannot_delete_other_users_comment(client):
 
     # Должно быть 404
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_logout_page_available_to_anonymous(client):
+    """Страница выхода доступна анонимному пользователю."""
+    url = reverse('users:logout')
+    response = client.post(url)
+    assert response.status_code == HTTPStatus.OK
