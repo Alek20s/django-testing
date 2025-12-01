@@ -1,9 +1,10 @@
-import pytest
-from django.urls import reverse
-from news.models import News
 from datetime import datetime, timedelta
+
+import pytest
 from django.contrib.auth.models import User
-from news.models import Comment
+from django.urls import reverse
+
+from news.models import Comment, News
 
 
 @pytest.mark.django_db
@@ -12,7 +13,7 @@ def test_home_page_contains_no_more_than_10_news(client):
     for i in range(15):
         News.objects.create(title=f'Новость {i}', text='Текст новости')
 
-    url = reverse('news:home')  # замени на нужное имя маршрута, если отличается
+    url = reverse('news:home')
     response = client.get(url)
     object_list = response.context['object_list']
 
@@ -84,11 +85,11 @@ def test_comments_are_sorted_chronologically(client):
 @pytest.mark.django_db
 def test_comment_form_availability(client):
     """
-    Анонимному пользователю недоступна форма для отправки комментария 
+    Анонимному пользователю недоступна форма для отправки комментария
     на странице отдельной новости, а авторизованному доступна.
     """
     from news.forms import CommentForm
-    
+
     news = News.objects.create(title='Test', text='Test text')
     url = reverse('news:detail', args=(news.id,))
     # Проверка для анонимного пользователя
