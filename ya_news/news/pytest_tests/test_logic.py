@@ -32,3 +32,24 @@ def test_anonymous_user_cannot_add_comment(client):
     # аноним должен быть перенаправлен на страницу логина
     assert response.status_code == HTTPStatus.FOUND  # 302
 
+
+@pytest.mark.django_db
+def test_comment_with_forbidden_words_not_published(client):
+    user = User.objects.create_user(username='alex', password='123')
+    client.login(username='alex', password='123')
+
+    news = News.objects.create(title='Test news', text='Some text')
+
+    url = reverse('news:detail', args=[news.id])
+
+    # одно из запрещённых слов — "редиска"
+    data = {'text': 'This is редиска word'}
+
+    response = client.post(url, data)
+
+    # комментарий НЕ должен создаться
+    assert Comment.objects.count() == 0
+
+    # форма должна содержать ошибку
+    assert response.context['form'].errors
+
