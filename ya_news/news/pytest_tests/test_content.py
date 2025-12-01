@@ -19,6 +19,7 @@ def test_home_page_contains_no_more_than_10_news(client):
     # проверяем, что новостей не больше 10
     assert len(object_list) <= 10
 
+
 @pytest.mark.django_db
 def test_news_are_sorted_by_date(client):
     # Создаём три новости с разными датами
@@ -47,6 +48,7 @@ def test_news_are_sorted_by_date(client):
 
     # Проверяем порядок: сначала news3, потом news2, потом news1
     assert object_list == [news3, news2, news1]
+
 
 @pytest.mark.django_db
 def test_comments_are_sorted_chronologically(client):
@@ -77,6 +79,7 @@ def test_comments_are_sorted_chronologically(client):
     comments = list(response.context['news'].comment_set.all())
 
     assert comments == [comment_old, comment_new]
+
 
 @pytest.mark.django_db
 def test_comment_form_availability(client):
