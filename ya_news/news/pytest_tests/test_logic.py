@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from http import HTTPStatus
 
 
-
 @pytest.mark.django_db
 def test_authenticated_user_can_add_comment(client):
     user = User.objects.create_user(username='alex', password='123')
@@ -19,7 +18,6 @@ def test_authenticated_user_can_add_comment(client):
     # просто проверяем, что появился хотя бы один комментарий
     assert Comment.objects.count() == 1
 
-
 @pytest.mark.django_db
 def test_anonymous_user_cannot_add_comment(client):
     news = News.objects.create(title='Test news', text='Some text')
@@ -31,7 +29,6 @@ def test_anonymous_user_cannot_add_comment(client):
 
     # аноним должен быть перенаправлен на страницу логина
     assert response.status_code == HTTPStatus.FOUND  # 302
-
 
 @pytest.mark.django_db
 def test_comment_with_forbidden_words_not_published(client):
@@ -52,7 +49,6 @@ def test_comment_with_forbidden_words_not_published(client):
 
     # форма должна содержать ошибку
     assert response.context['form'].errors
-
 
 
 @pytest.mark.django_db
