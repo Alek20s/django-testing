@@ -1,9 +1,10 @@
-import pytest
 from http import HTTPStatus
-from django.urls import reverse
-from news.models import News
+
+import pytest
 from django.contrib.auth.models import User
-from news.models import Comment
+from django.urls import reverse
+
+from news.models import Comment, News
 
 
 @pytest.mark.django_db
@@ -23,8 +24,6 @@ def test_news_detail_page(client):
 
 @pytest.mark.django_db
 def test_comment_edit_available_to_author(client):
-    from django.contrib.auth.models import User
-    from news.models import Comment
     author = User.objects.create_user(username='author', password='pass')
     client.login(username='author', password='pass')
     news = News.objects.create(title='Test', text='Test text')
@@ -36,8 +35,6 @@ def test_comment_edit_available_to_author(client):
 
 @pytest.mark.django_db
 def test_comment_delete_available_to_author(client):
-    from django.contrib.auth.models import User
-    from news.models import Comment
     author = User.objects.create_user(username='author', password='pass')
     client.login(username='author', password='pass')
     news = News.objects.create(title='Test', text='Test text')
@@ -63,7 +60,7 @@ def test_user_cannot_edit_other_users_comment(client):
     # Автор комментария
     author = User.objects.create_user(username='author', password='pass')
     # Другой пользователь
-    other_user = User.objects.create_user(username='other', password='pass')
+    User.objects.create_user(username='other', password='pass')
     # Комментарий, который принадлежит author
     news = News.objects.create(title='Test', text='Text')
     comment = Comment.objects.create(news=news, author=author, text='Comment')
@@ -82,7 +79,7 @@ def test_user_cannot_delete_other_users_comment(client):
     author = User.objects.create_user(username='author', password='pass')
 
     # Другой пользователь
-    other_user = User.objects.create_user(username='other', password='pass')
+    User.objects.create_user(username='other', password='pass')
 
     # Комментарий автора
     news = News.objects.create(title='Test', text='Text')

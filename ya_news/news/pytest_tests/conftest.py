@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth.models import User
-from news.models import News, Comment
+from news.models import Comment, News
 
 
 @pytest.fixture
@@ -31,4 +31,8 @@ def auth_client(client, author_user):
 @pytest.fixture
 def comment(db, author_user, news):
     """Создаёт комментарий автора к новости."""
-    return Comment.objects.create(news=news, author=author_user, text='Author comment')
+    return Comment.objects.create(
+        news=news,
+        author=author_user,
+        text='Author comment'
+    )
