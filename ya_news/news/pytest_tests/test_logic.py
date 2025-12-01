@@ -2,6 +2,8 @@ import pytest
 from django.urls import reverse
 from news.models import News, Comment
 from django.contrib.auth.models import User
+from http import HTTPStatus
+
 
 
 @pytest.mark.django_db
@@ -16,3 +18,17 @@ def test_authenticated_user_can_add_comment(client):
 
     # просто проверяем, что появился хотя бы один комментарий
     assert Comment.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_anonymous_user_cannot_add_comment(client):
+    news = News.objects.create(title='Test news', text='Some text')
+
+    url = reverse('news:detail', args=[news.id])
+    data = {'text': 'Anon comment'}
+
+    response = client.post(url, data)
+
+    # аноним должен быть перенаправлен на страницу логина
+    assert response.status_code == HTTPStatus.FOUND  # 302
+
