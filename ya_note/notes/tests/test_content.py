@@ -69,6 +69,3 @@ class TestContent(TestCase):
         # в списке должны быть только заметки user1
         self.assertEqual(len(object_list), 1)
         self.assertEqual(object_list[0].author, user1)
-
-
-

@@ -103,7 +103,3 @@ def test_comment_form_availability(client):
     response = client.get(url)
     assert 'form' in response.context
     assert isinstance(response.context['form'], CommentForm)
-
-
-
-

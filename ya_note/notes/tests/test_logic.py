@@ -60,3 +60,55 @@ class TestLogic(TestCase):
 
         # slug должен быть автоматически сформирован (не пустой)
         self.assertTrue(note.slug)
+
+    def test_anonymous_user_cannot_create_note(self):
+        client = Client()
+        url = reverse('notes:add')
+        data = {'title': 'test note', 'text': 'some text'}
+        initial_count = Note.objects.count()
+        response = client.post(url, data)
+        self.assertEqual(Note.objects.count(), initial_count)
+
+    def test_user_can_edit_own_note(self):
+        user = User.objects.create_user(username='alex', password='123')
+        note = Note.objects.create(title='old title', text='old text', author=user, slug='test-slug')
+        client = Client()
+        client.login(username='alex', password='123')
+        url = reverse('notes:edit', args=[note.slug])
+        data = {'title': 'new title', 'text': 'new text', 'slug': 'test-slug'}
+        response = client.post(url, data)
+        note.refresh_from_db()
+        self.assertEqual(note.title, 'new title')
+        self.assertEqual(note.text, 'new text')
+
+    def test_user_can_delete_own_note(self):
+        user = User.objects.create_user(username='alex', password='123')
+        note = Note.objects.create(title='test', text='text', author=user, slug='test-slug')
+        client = Client()
+        client.login(username='alex', password='123')
+        url = reverse('notes:delete', args=[note.slug])
+        response = client.post(url)
+        self.assertFalse(Note.objects.filter(slug='test-slug').exists())
+
+    def test_user_cannot_edit_other_user_note(self):
+        author = User.objects.create_user(username='author', password='123')
+        other_user = User.objects.create_user(username='other', password='123')
+        note = Note.objects.create(title='test', text='text', author=author, slug='test-slug')
+        client = Client()
+        client.login(username='other', password='123')
+        url = reverse('notes:edit', args=[note.slug])
+        data = {'title': 'hacked', 'text': 'hacked', 'slug': 'test-slug'}
+        response = client.post(url, data)
+        note.refresh_from_db()
+        self.assertEqual(note.title, 'test')
+
+    def test_user_cannot_delete_other_user_note(self):
+        author = User.objects.create_user(username='author', password='123')
+        other_user = User.objects.create_user(username='other', password='123')
+        note = Note.objects.create(title='test', text='text', author=author, slug='test-slug')
+        client = Client()
+        client.login(username='other', password='123')
+        url = reverse('notes:delete', args=[note.slug])
+        response = client.post(url)
+        self.assertTrue(Note.objects.filter(slug='test-slug').exists())
+        
