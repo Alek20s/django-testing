@@ -52,3 +52,23 @@ class TestContent(TestCase):
         self.assertIn('form', response.context)
 
 
+    def test_notes_list_shows_only_user_notes(self):
+        user1 = User.objects.create_user(username='alex', password='123')
+        user2 = User.objects.create_user(username='kate', password='123')
+
+        Note.objects.create(title='note1', text='text', author=user1)
+        Note.objects.create(title='note2', text='text', author=user2)
+
+        client = Client()
+        client.login(username='alex', password='123')
+
+        url = reverse('notes:list')
+        response = client.get(url)
+        object_list = response.context['object_list']
+
+        # в списке должны быть только заметки user1
+        self.assertEqual(len(object_list), 1)
+        self.assertEqual(object_list[0].author, user1)
+
+
+
