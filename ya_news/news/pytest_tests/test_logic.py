@@ -1,13 +1,15 @@
-import pytest
-from django.urls import reverse
-from news.models import News, Comment
-from django.contrib.auth.models import User
 from http import HTTPStatus
+
+import pytest
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+from news.models import Comment, News
 
 
 @pytest.mark.django_db
 def test_authenticated_user_can_add_comment(client):
-    user = User.objects.create_user(username='alex', password='123')
+    User.objects.create_user(username='alex', password='123')
     news = News.objects.create(title='Test news', text='Some text')
     client.login(username='alex', password='123')
 
@@ -34,7 +36,7 @@ def test_anonymous_user_cannot_add_comment(client):
 
 @pytest.mark.django_db
 def test_comment_with_forbidden_words_not_published(client):
-    user = User.objects.create_user(username='alex', password='123')
+    User.objects.create_user(username='alex', password='123')
     client.login(username='alex', password='123')
 
     news = News.objects.create(title='Test news', text='Some text')
@@ -55,14 +57,16 @@ def test_comment_with_forbidden_words_not_published(client):
 
 @pytest.mark.django_db
 def test_author_can_edit_own_comment(client):
-    """Авторизованный пользователь может редактировать свои комментарии."""
+    """Авторизованный пользователь может редактировать комментарии."""
     author = User.objects.create_user(username='author', password='pass')
     client.force_login(author)
     news = News.objects.create(title='Test', text='Test text')
-    comment = Comment.objects.create(news=news, author=author, text='Original text')   
+    comment = Comment.objects.create(
+        news=news, author=author, text='Original text'
+    )
     url = reverse('news:edit', args=(comment.id,))
     new_text = 'Updated text'
-    response = client.post(url, {'text': new_text})   
+    response = client.post(url, {'text': new_text})
     assert response.status_code == HTTPStatus.FOUND
     comment.refresh_from_db()
     assert comment.text == new_text
