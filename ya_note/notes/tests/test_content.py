@@ -6,7 +6,7 @@ from notes.models import Note
 
 class TestContent(TestCase):
     def test_add_page_contains_form(self):
-        user = User.objects.create_user(username='alex', password='123')
+        User.objects.create_user(username='alex', password='123')
         client = Client()
         client.login(username='alex', password='123')
 
@@ -36,7 +36,7 @@ class TestContent(TestCase):
 class TestContent(TestCase):
     def test_edit_page_contains_form(self):
         user = User.objects.create_user(username='alex', password='123')
-        note = Note.objects.create(
+        Note.objects.create(
             title='test note',
             text='text',
             author=user,
@@ -50,7 +50,6 @@ class TestContent(TestCase):
         response = client.get(url)
 
         self.assertIn('form', response.context)
-
 
     def test_notes_list_shows_only_user_notes(self):
         user1 = User.objects.create_user(username='alex', password='123')
