@@ -1,133 +1,105 @@
-from django.test import TestCase, Client
-from django.urls import reverse
 from django.contrib.auth.models import User
+
 from notes.models import Note
 
+from .test_base import BaseTestCase, ADD_URL, FORM_DATA
 
-class TestLogic(TestCase):
+
+class TestLogic(BaseTestCase):
+    
     def test_authenticated_user_can_create_note(self):
-        user = User.objects.create_user(username='alex', password='123')
-        client = Client()
-        client.login(username='alex', password='123')
-
-        url = reverse('notes:add')  # если маршрут другой — замени
-        data = {'title': 'test note', 'text': 'some text'}
-        client.post(url, data)
-
-        # проверяем, что заметка создалась
-        self.assertTrue(
-            Note.objects.filter(title='test note', author=user).exists()
-        )
+        form_data = {
+            'title': 'New note',
+            'text': 'New text',
+            'slug': 'new-slug'
+        }
+        
+        self.author_client.post(ADD_URL, data=form_data)
+        
+        self.assertEqual(Note.objects.count(), 2)
+        
+        new_note = Note.objects.get(slug='new-slug')
+        self.assertEqual(new_note.title, form_data['title'])
+        self.assertEqual(new_note.text, form_data['text'])
+        self.assertEqual(new_note.slug, form_data['slug'])
+        self.assertEqual(new_note.author, self.author)
 
     def test_cannot_create_two_notes_with_same_slug(self):
-        user = User.objects.create_user(username='alex', password='123')
-        client = Client()
-        client.login(username='alex', password='123')
-
-        # создаём первую заметку со slug
-        Note.objects.create(
-            title='note1',
-            text='text1',
-            author=user,
-            slug='duplicate'
-        )
-
-        # пытаемся создать вторую заметку с тем же slug
-        url = reverse('notes:add')
-        data = {'title': 'note2', 'text': 'text2', 'slug': 'duplicate'}
-
-        client.post(url, data)
-
-        # slug уникальный → вторая заметка НЕ должна создаться
-        self.assertEqual(Note.objects.filter(slug='duplicate').count(), 1)
+        form_data = {
+            'title': 'Another note',
+            'text': 'Another text',
+            'slug': self.note.slug
+        }
+        
+        self.author_client.post(ADD_URL, data=form_data)
+        
+        self.assertEqual(Note.objects.count(), 1)
 
     def test_slug_is_generated_automatically_if_not_provided(self):
-        User.objects.create_user(username='alex', password='123')
-        client = Client()
-        client.login(username='alex', password='123')
-
-        data = {
+        form_data = {
             'title': 'Моя заметка',
             'text': 'Текст заметки'
         }
-
-        url = reverse('notes:add')
-        client.post(url, data)
-
-        # заметка должна создаться
-        note = Note.objects.first()
-        self.assertIsNotNone(note)
-
-        # slug должен быть автоматически сформирован (не пустой)
-        self.assertTrue(note.slug)
+        
+        self.author_client.post(ADD_URL, data=form_data)
+        
+        self.assertEqual(Note.objects.count(), 2)
+        
+        new_note = Note.objects.get(title='Моя заметка')
+        self.assertEqual(new_note.title, form_data['title'])
+        self.assertEqual(new_note.text, form_data['text'])
+        self.assertEqual(new_note.author, self.author)
+        self.assertTrue(new_note.slug)
+        self.assertEqual(new_note.slug, 'moya-zametka')
 
     def test_anonymous_user_cannot_create_note(self):
-        client = Client()
-        url = reverse('notes:add')
-        data = {'title': 'test note', 'text': 'some text'}
-        initial_count = Note.objects.count()
-        client.post(url, data)
-        self.assertEqual(Note.objects.count(), initial_count)
+        form_data = {
+            'title': 'Anon note',
+            'text': 'Anon text',
+            'slug': 'anon-slug'
+        }
+        
+        self.client.post(ADD_URL, data=form_data)
+        
+        self.assertEqual(Note.objects.count(), 1)
 
     def test_user_can_edit_own_note(self):
-        user = User.objects.create_user(username='alex', password='123')
-        note = Note.objects.create(
-            title='old title',
-            text='old text',
-            author=user,
-            slug='test-slug'
-        )
-        client = Client()
-        client.login(username='alex', password='123')
-        url = reverse('notes:edit', args=[note.slug])
-        data = {'title': 'new title', 'text': 'new text', 'slug': 'test-slug'}
-        client.post(url, data)
-        note.refresh_from_db()
-        self.assertEqual(note.title, 'new title')
-        self.assertEqual(note.text, 'new text')
+        form_data = {
+            'title': 'Edited title',
+            'text': 'Edited text',
+            'slug': self.note.slug
+        }
+        
+        self.author_client.post(self.note_edit_url, data=form_data)
+        
+        updated_note = Note.objects.get(slug=self.note.slug)
+        self.assertEqual(updated_note.title, form_data['title'])
+        self.assertEqual(updated_note.text, form_data['text'])
+        self.assertEqual(updated_note.slug, form_data['slug'])
+        self.assertEqual(updated_note.author, self.author)
 
     def test_user_can_delete_own_note(self):
-        user = User.objects.create_user(username='alex', password='123')
-        note = Note.objects.create(
-            title='test',
-            text='text',
-            author=user,
-            slug='test-slug'
-        )
-        client = Client()
-        client.login(username='alex', password='123')
-        url = reverse('notes:delete', args=[note.slug])
-        client.post(url)
-        self.assertFalse(Note.objects.filter(slug='test-slug').exists())
+        self.author_client.post(self.note_delete_url)
+        
+        self.assertEqual(Note.objects.count(), 0)
 
     def test_user_cannot_edit_other_user_note(self):
-        author = User.objects.create_user(username='author', password='123')
-        User.objects.create_user(username='other', password='123')
-        note = Note.objects.create(
-            title='test',
-            text='text',
-            author=author,
-            slug='test-slug'
-        )
-        client = Client()
-        client.login(username='other', password='123')
-        url = reverse('notes:edit', args=[note.slug])
-        data = {'title': 'hacked', 'text': 'hacked', 'slug': 'test-slug'}
-        client.post(url, data)
-        note.refresh_from_db()
-        self.assertEqual(note.title, 'test')
+        form_data = {
+            'title': 'Hacked title',
+            'text': 'Hacked text',
+            'slug': self.note.slug
+        }
+        
+        self.reader_client.post(self.note_edit_url, data=form_data)
+        
+        unchanged_note = Note.objects.get(slug=self.note.slug)
+        self.assertEqual(unchanged_note.title, self.note.title)
+        self.assertEqual(unchanged_note.text, self.note.text)
+        self.assertEqual(unchanged_note.slug, self.note.slug)
+        self.assertEqual(unchanged_note.author, self.note.author)
 
     def test_user_cannot_delete_other_user_note(self):
-        author = User.objects.create_user(username='author', password='123')
-        User.objects.create_user(username='other', password='123')
-        note = Note.objects.create(
-            title='test',
-            text='text',
-            author=author,
-            slug='test-slug'
-        )
-        client = Client()
-        client.login(username='other', password='123')
-        url = reverse('notes:delete', args=[note.slug])
-        client.post(url)
-        self.assertTrue(Note.objects.filter(slug='test-slug').exists())
+        self.reader_client.post(self.note_delete_url)
+        
+        self.assertEqual(Note.objects.count(), 1)
+        self.assertTrue(Note.objects.filter(slug=self.note.slug).exists())
