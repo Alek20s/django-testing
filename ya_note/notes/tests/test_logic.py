@@ -4,7 +4,6 @@ from notes.models import Note
 
 from .test_base import BaseTestCase, ADD_URL, FORM_DATA
 
-
 class TestLogic(BaseTestCase):
     
     def test_authenticated_user_can_create_note(self):

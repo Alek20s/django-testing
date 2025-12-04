@@ -4,49 +4,40 @@ import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
 
+from news.forms import BAD_WORDS
 from news.models import Comment, News
 
+pytestmark = pytest.mark.django_db
 
-@pytest.mark.django_db
-def test_authenticated_user_can_add_comment(client):
-    User.objects.create_user(username='alex', password='123')
-    news = News.objects.create(title='Test news', text='Some text')
-    client.login(username='alex', password='123')
+# Form data constants
+COMMENT_TEXT = {'text': 'Test comment'}
+ANON_COMMENT_TEXT = {'text': 'Anon comment'}
+BAD_WORD_COMMENT = {'text': f'This is {BAD_WORDS[0]} word'}
+UPDATED_COMMENT_TEXT = {'text': 'Updated text'}
 
-    url = reverse('news:detail', args=[news.id])
-    data = {'text': 'Test comment'}
-    client.post(url, data)
 
-    # просто проверяем, что появился хотя бы один комментарий
+def test_authenticated_user_can_add_comment(auth_client, author_user, news, detail_url):
+    auth_client.post(detail_url, COMMENT_TEXT)
+    
+    # Проверяем, что комментарий создан с правильными полями
     assert Comment.objects.count() == 1
+    comment = Comment.objects.get()
+    assert comment.text == COMMENT_TEXT['text']
+    assert comment.news == news
+    assert comment.author == author_user
 
 
-@pytest.mark.django_db
-def test_anonymous_user_cannot_add_comment(client):
-    news = News.objects.create(title='Test news', text='Some text')
-
-    url = reverse('news:detail', args=[news.id])
-    data = {'text': 'Anon comment'}
-
-    response = client.post(url, data)
+def test_anonymous_user_cannot_add_comment(client, news, detail_url):
+    response = client.post(detail_url, ANON_COMMENT_TEXT)
 
     # аноним должен быть перенаправлен на страницу логина
     assert response.status_code == HTTPStatus.FOUND  # 302
+    # Проверяем, что комментарий НЕ создан
+    assert Comment.objects.count() == 0
 
 
-@pytest.mark.django_db
-def test_comment_with_forbidden_words_not_published(client):
-    User.objects.create_user(username='alex', password='123')
-    client.login(username='alex', password='123')
-
-    news = News.objects.create(title='Test news', text='Some text')
-
-    url = reverse('news:detail', args=[news.id])
-
-    # одно из запрещённых слов — "редиска"
-    data = {'text': 'This is редиска word'}
-
-    response = client.post(url, data)
+def test_comment_with_forbidden_words_not_published(auth_client, news, detail_url):
+    response = auth_client.post(detail_url, BAD_WORD_COMMENT)
 
     # комментарий НЕ должен создаться
     assert Comment.objects.count() == 0
@@ -55,18 +46,22 @@ def test_comment_with_forbidden_words_not_published(client):
     assert response.context['form'].errors
 
 
-@pytest.mark.django_db
-def test_author_can_edit_own_comment(client):
+def test_author_can_edit_own_comment(auth_client, author_user, news, comment, edit_url):
     """Авторизованный пользователь может редактировать комментарии."""
-    author = User.objects.create_user(username='author', password='pass')
-    client.force_login(author)
-    news = News.objects.create(title='Test', text='Test text')
-    comment = Comment.objects.create(
-        news=news, author=author, text='Original text'
-    )
-    url = reverse('news:edit', args=(comment.id,))
-    new_text = 'Updated text'
-    response = client.post(url, {'text': new_text})
+    response = auth_client.post(edit_url, UPDATED_COMMENT_TEXT)
     assert response.status_code == HTTPStatus.FOUND
-    comment.refresh_from_db()
-    assert comment.text == new_text
+    
+    # Read fresh from database and check all 3 fields
+    updated_comment = Comment.objects.get(pk=comment.pk)
+    assert updated_comment.text == UPDATED_COMMENT_TEXT['text']
+    assert updated_comment.news == news
+    assert updated_comment.author == author_user
+
+
+def test_author_can_delete_own_comment(auth_client, comment, delete_url):
+    """Авторизованный пользователь может удалить свой комментарий."""
+    response = auth_client.post(delete_url)
+    assert response.status_code == HTTPStatus.FOUND
+    
+    # Проверяем, что комментарий удален из базы
+    assert Comment.objects.count() == 0
