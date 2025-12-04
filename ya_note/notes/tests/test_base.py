@@ -34,7 +34,7 @@ FORM_DATA = {
 
 class BaseTestCase(TestCase):
     """Базовый класс для всех тестов ya_note."""
-  
+
     @classmethod
     def setUpTestData(cls):
         """Создание тестовых данных один раз для всего класса."""
@@ -53,7 +53,7 @@ class BaseTestCase(TestCase):
             slug=NOTE_SLUG,
             author=cls.author
         )
-  
+
         cls.note_detail_url = reverse('notes:detail', args=[NOTE_SLUG])
         cls.note_edit_url = reverse('notes:edit', args=[NOTE_SLUG])
         cls.note_delete_url = reverse('notes:delete', args=[NOTE_SLUG])
@@ -65,4 +65,4 @@ class BaseTestCase(TestCase):
         self.author_client.force_login(self.author)
         self.reader_client = Client()
         self.reader_client.force_login(self.reader)
-
+        
