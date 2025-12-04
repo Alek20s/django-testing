@@ -5,18 +5,18 @@ from notes.models import Note
 from .test_base import BaseTestCase, ADD_URL, FORM_DATA
 
 class TestLogic(BaseTestCase):
-    
+
     def test_authenticated_user_can_create_note(self):
         form_data = {
             'title': 'New note',
             'text': 'New text',
             'slug': 'new-slug'
         }
-        
+    
         self.author_client.post(ADD_URL, data=form_data)
-        
+  
         self.assertEqual(Note.objects.count(), 2)
-        
+  
         new_note = Note.objects.get(slug='new-slug')
         self.assertEqual(new_note.title, form_data['title'])
         self.assertEqual(new_note.text, form_data['text'])
@@ -29,9 +29,9 @@ class TestLogic(BaseTestCase):
             'text': 'Another text',
             'slug': self.note.slug
         }
-        
+   
         self.author_client.post(ADD_URL, data=form_data)
-        
+ 
         self.assertEqual(Note.objects.count(), 1)
 
     def test_slug_is_generated_automatically_if_not_provided(self):
@@ -39,11 +39,11 @@ class TestLogic(BaseTestCase):
             'title': 'Моя заметка',
             'text': 'Текст заметки'
         }
-        
+
         self.author_client.post(ADD_URL, data=form_data)
         
         self.assertEqual(Note.objects.count(), 2)
-        
+
         new_note = Note.objects.get(title='Моя заметка')
         self.assertEqual(new_note.title, form_data['title'])
         self.assertEqual(new_note.text, form_data['text'])
@@ -57,9 +57,9 @@ class TestLogic(BaseTestCase):
             'text': 'Anon text',
             'slug': 'anon-slug'
         }
-        
+
         self.client.post(ADD_URL, data=form_data)
-        
+
         self.assertEqual(Note.objects.count(), 1)
 
     def test_user_can_edit_own_note(self):
@@ -68,9 +68,9 @@ class TestLogic(BaseTestCase):
             'text': 'Edited text',
             'slug': self.note.slug
         }
-        
+
         self.author_client.post(self.note_edit_url, data=form_data)
-        
+
         updated_note = Note.objects.get(slug=self.note.slug)
         self.assertEqual(updated_note.title, form_data['title'])
         self.assertEqual(updated_note.text, form_data['text'])
@@ -79,7 +79,7 @@ class TestLogic(BaseTestCase):
 
     def test_user_can_delete_own_note(self):
         self.author_client.post(self.note_delete_url)
-        
+ 
         self.assertEqual(Note.objects.count(), 0)
 
     def test_user_cannot_edit_other_user_note(self):
@@ -88,9 +88,9 @@ class TestLogic(BaseTestCase):
             'text': 'Hacked text',
             'slug': self.note.slug
         }
-        
+
         self.reader_client.post(self.note_edit_url, data=form_data)
-        
+
         unchanged_note = Note.objects.get(slug=self.note.slug)
         self.assertEqual(unchanged_note.title, self.note.title)
         self.assertEqual(unchanged_note.text, self.note.text)
@@ -99,6 +99,6 @@ class TestLogic(BaseTestCase):
 
     def test_user_cannot_delete_other_user_note(self):
         self.reader_client.post(self.note_delete_url)
-        
+
         self.assertEqual(Note.objects.count(), 1)
         self.assertTrue(Note.objects.filter(slug=self.note.slug).exists())
