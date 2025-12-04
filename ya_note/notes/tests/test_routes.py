@@ -29,7 +29,7 @@ class TestRoutes(BaseTestCase):
             (self.note_edit_url, self.reader_client, HTTPStatus.NOT_FOUND),
             (self.note_delete_url, self.reader_client, HTTPStatus.NOT_FOUND),
         ]
-      
+
         for url, client, expected_status in urls:
             with self.subTest(url=url, client=client):
                 response = client.get(url)
@@ -45,7 +45,7 @@ class TestRoutes(BaseTestCase):
             (self.note_edit_url, f'{LOGIN_URL}?next={self.note_edit_url}'),
             (self.note_delete_url, f'{LOGIN_URL}?next={self.note_delete_url}'),
         ]
-        
+  
         for url, expected_redirect in urls:
             with self.subTest(url=url):
                 response = self.client.get(url)
