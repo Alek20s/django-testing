@@ -14,7 +14,7 @@ class TestLogic(BaseTestCase):
         }
 
         self.author_client.post(ADD_URL, data=form_data)
- 
+
         self.assertEqual(Note.objects.count(), 2)
 
         new_note = Note.objects.get(slug='new-slug')
@@ -41,7 +41,7 @@ class TestLogic(BaseTestCase):
         }
 
         self.author_client.post(ADD_URL, data=form_data)
-   
+
         self.assertEqual(Note.objects.count(), 2)
 
         new_note = Note.objects.get(title='Моя заметка')
