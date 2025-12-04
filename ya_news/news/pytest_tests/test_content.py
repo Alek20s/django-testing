@@ -11,7 +11,8 @@ def test_home_page_contains_no_more_than_10_news(
 ):
     """Проверка количества новостей на главной странице."""
     response = client.get(home_url)
-    assert len(response.context['object_list']) == settings.NEWS_COUNT_ON_HOME_PAGE
+    object_list = response.context['object_list']
+    assert len(object_list) == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
 def test_news_are_sorted_by_date(client, news_with_dates, home_url):

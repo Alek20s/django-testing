@@ -25,7 +25,8 @@ NOT_FOUND = HTTPStatus.NOT_FOUND
     ]
 )
 def test_pages_availability(
-    request, client_name, url_name, method, expected_status, redirect_to_login, login_url
+    request, client_name, url_name, method, expected_status,
+    redirect_to_login, login_url
 ):
     """Проверка доступности страниц для разных пользователей."""
     client_fixture = request.getfixturevalue(client_name)
