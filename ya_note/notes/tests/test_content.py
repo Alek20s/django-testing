@@ -19,7 +19,7 @@ class TestContent(BaseTestCase):
     def test_note_appears_in_notes_list(self):
         response = self.author_client.get(LIST_URL)
         notes = response.context['object_list']
-  
+
         self.assertIn(self.note, notes)
         self.assertEqual(self.note.title, 'Test Note')
         self.assertEqual(self.note.text, 'Test text')

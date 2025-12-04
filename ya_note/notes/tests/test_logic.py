@@ -1,5 +1,3 @@
-from django.contrib.auth.models import User
-
 from notes.models import Note
 
 from .test_base import BaseTestCase, ADD_URL, FORM_DATA
