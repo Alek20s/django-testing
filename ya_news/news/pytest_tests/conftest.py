@@ -1,6 +1,9 @@
-import pytest
+from datetime import datetime, timedelta
 
+import pytest
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.test import Client
 from django.urls import reverse
 
 from news.models import Comment, News
@@ -27,7 +30,6 @@ def news(db):
 @pytest.fixture
 def auth_client(author_user):
     """Возвращает клиента, залогиненного как автор."""
-    from django.test import Client
     client = Client()
     client.force_login(author_user)
     return client
@@ -36,7 +38,6 @@ def auth_client(author_user):
 @pytest.fixture
 def not_author_client(not_author_user):
     """Возвращает клиента, залогиненного как не-автор."""
-    from django.test import Client
     client = Client()
     client.force_login(not_author_user)
     return client
@@ -83,61 +84,49 @@ def logout_url():
 
 
 @pytest.fixture
+def login_url():
+    """URL страницы логина."""
+    return reverse('users:login')
+
+
+@pytest.fixture
 def multiple_news(db):
-    """Создаёт много новостей для проверки пагинации."""
-    from django.conf import settings
-    news_list = []
-    for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 5):
-        news_list.append(
-            News.objects.create(title=f'Новость {i}', text='Текст новости')
+    """Создаёт новости для проверки пагинации."""
+    now = datetime.now()
+    return [
+        News.objects.create(
+            title=f'Новость {i}',
+            text='Текст новости',
+            date=now - timedelta(days=i)
         )
-    return news_list
+        for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 5)
+    ]
 
 
 @pytest.fixture
 def news_with_dates(db):
     """Создаёт три новости с разными датами для проверки сортировки."""
-    from datetime import datetime, timedelta
     now = datetime.now()
-
-    news1 = News.objects.create(
-        title='news1',
-        text='text1',
-        date=now - timedelta(days=2)
-    )
-    news2 = News.objects.create(
-        title='news2',
-        text='text2',
-        date=now - timedelta(days=1)
-    )
-    news3 = News.objects.create(
-        title='news3',
-        text='text3',
-        date=now
-    )
-    return [news3, news2, news1]  # В порядке от новых к старым
+    return [
+        News.objects.create(
+            title=f'Новость {i}',
+            text='Текст новости',
+            date=now - timedelta(days=i)
+        )
+        for i in range(3)
+    ]
 
 
 @pytest.fixture
 def comments_with_dates(db, author_user, news):
-    """Создаёт два комментария с разными датами для проверки сортировки."""
-    from datetime import datetime, timedelta
-
-    old_time = datetime.now() - timedelta(days=1)
-    new_time = datetime.now()
-
-    comment_old = Comment.objects.create(
-        news=news,
-        author=author_user,
-        text='Old comment',
-        created=old_time
-    )
-
-    comment_new = Comment.objects.create(
-        news=news,
-        author=author_user,
-        text='New comment',
-        created=new_time
-    )
-
-    return [comment_old, comment_new]  # В хронологическом порядке
+    """Создаёт 222 комментария с разными датами для проверки сортировки."""
+    now = datetime.now()
+    return [
+        Comment.objects.create(
+            news=news,
+            author=author_user,
+            text=f'Comment {i}',
+            created=now - timedelta(days=221-i)
+        )
+        for i in range(222)
+    ]

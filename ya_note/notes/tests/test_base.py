@@ -5,16 +5,6 @@ from django.urls import reverse
 from notes.models import Note
 
 
-# Константы для пользователей
-AUTHOR_USERNAME = 'author'
-READER_USERNAME = 'reader'
-PASSWORD = 'testpass123'
-
-# Константы для заметок
-NOTE_SLUG = 'test-slug'
-NOTE_TITLE = 'Test Note'
-NOTE_TEXT = 'Test text'
-
 # Константы URL (без параметров)
 HOME_URL = reverse('notes:home')
 LIST_URL = reverse('notes:list')
@@ -24,12 +14,18 @@ LOGIN_URL = reverse('users:login')
 SIGNUP_URL = reverse('users:signup')
 LOGOUT_URL = reverse('users:logout')
 
-# Данные для форм
-FORM_DATA = {
-    'title': NOTE_TITLE,
-    'text': NOTE_TEXT,
-    'slug': NOTE_SLUG,
-}
+# Константы URL (с параметрами)
+NOTE_DETAIL_URL = reverse('notes:detail', args=['existing-slug'])
+NOTE_EDIT_URL = reverse('notes:edit', args=['existing-slug'])
+NOTE_DELETE_URL = reverse('notes:delete', args=['existing-slug'])
+
+# URL для редиректов
+LIST_REDIRECT_URL = f'{LOGIN_URL}?next={LIST_URL}'
+ADD_REDIRECT_URL = f'{LOGIN_URL}?next={ADD_URL}'
+SUCCESS_REDIRECT_URL = f'{LOGIN_URL}?next={SUCCESS_URL}'
+NOTE_DETAIL_REDIRECT_URL = f'{LOGIN_URL}?next={NOTE_DETAIL_URL}'
+NOTE_EDIT_REDIRECT_URL = f'{LOGIN_URL}?next={NOTE_EDIT_URL}'
+NOTE_DELETE_REDIRECT_URL = f'{LOGIN_URL}?next={NOTE_DELETE_URL}'
 
 
 class BaseTestCase(TestCase):
@@ -39,28 +35,30 @@ class BaseTestCase(TestCase):
     def setUpTestData(cls):
         """Создание тестовых данных один раз для всего класса."""
         cls.author = User.objects.create_user(
-            username=AUTHOR_USERNAME,
-            password=PASSWORD
+            username='author',
+            password='testpass123'
         )
         cls.reader = User.objects.create_user(
-            username=READER_USERNAME,
-            password=PASSWORD
+            username='reader',
+            password='testpass123'
         )
 
         cls.note = Note.objects.create(
-            title=NOTE_TITLE,
-            text=NOTE_TEXT,
-            slug=NOTE_SLUG,
+            title='Existing Note',
+            text='Existing text',
+            slug='existing-slug',
             author=cls.author
         )
 
-        cls.note_detail_url = reverse('notes:detail', args=[NOTE_SLUG])
-        cls.note_edit_url = reverse('notes:edit', args=[NOTE_SLUG])
-        cls.note_delete_url = reverse('notes:delete', args=[NOTE_SLUG])
+        # Данные для создания новой заметки (отличаются от существующей)
+        cls.form_data = {
+            'title': 'New Note',
+            'text': 'New text',
+            'slug': 'new-slug',
+        }
 
     def setUp(self):
         """Создание клиентов для каждого теста."""
-        self.client = Client()
         self.author_client = Client()
         self.author_client.force_login(self.author)
         self.reader_client = Client()

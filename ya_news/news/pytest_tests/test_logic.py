@@ -8,38 +8,35 @@ from news.models import Comment
 pytestmark = pytest.mark.django_db
 
 # Form data constants
-COMMENT_TEXT = {'text': 'Test comment'}
-ANON_COMMENT_TEXT = {'text': 'Anon comment'}
-BAD_WORD_COMMENT = {'text': f'This is {BAD_WORDS[0]} word'}
-UPDATED_COMMENT_TEXT = {'text': 'Updated text'}
+FORM_DATA = {'text': 'Test comment'}
 
 
 def test_authenticated_user_can_add_comment(
     auth_client, author_user, news, detail_url
 ):
-    auth_client.post(detail_url, COMMENT_TEXT)
+    auth_client.post(detail_url, FORM_DATA)
 
     # Проверяем, что комментарий создан с правильными полями
     assert Comment.objects.count() == 1
     comment = Comment.objects.get()
-    assert comment.text == COMMENT_TEXT['text']
+    assert comment.text == FORM_DATA['text']
     assert comment.news == news
     assert comment.author == author_user
 
 
 def test_anonymous_user_cannot_add_comment(client, news, detail_url):
-    response = client.post(detail_url, ANON_COMMENT_TEXT)
-
     # аноним должен быть перенаправлен на страницу логина
-    assert response.status_code == HTTPStatus.FOUND  # 302
+    assert client.post(detail_url, FORM_DATA).status_code == HTTPStatus.FOUND
     # Проверяем, что комментарий НЕ создан
     assert Comment.objects.count() == 0
 
 
+@pytest.mark.parametrize('bad_word', BAD_WORDS)
 def test_comment_with_forbidden_words_not_published(
-    auth_client, news, detail_url
+    auth_client, news, detail_url, bad_word
 ):
-    response = auth_client.post(detail_url, BAD_WORD_COMMENT)
+    bad_word_data = {'text': f'This is {bad_word} word'}
+    response = auth_client.post(detail_url, bad_word_data)
 
     # комментарий НЕ должен создаться
     assert Comment.objects.count() == 0
@@ -49,17 +46,15 @@ def test_comment_with_forbidden_words_not_published(
 
 
 def test_author_can_edit_own_comment(
-    auth_client, author_user, news, comment, edit_url
+    auth_client, comment, edit_url
 ):
     """Авторизованный пользователь может редактировать комментарии."""
-    response = auth_client.post(edit_url, UPDATED_COMMENT_TEXT)
+    response = auth_client.post(edit_url, FORM_DATA)
     assert response.status_code == HTTPStatus.FOUND
 
-    # Read fresh from database and check all 3 fields
+    # Read fresh from database and check text field
     updated_comment = Comment.objects.get(pk=comment.pk)
-    assert updated_comment.text == UPDATED_COMMENT_TEXT['text']
-    assert updated_comment.news == news
-    assert updated_comment.author == author_user
+    assert updated_comment.text == FORM_DATA['text']
 
 
 def test_author_can_delete_own_comment(auth_client, comment, delete_url):
@@ -69,3 +64,27 @@ def test_author_can_delete_own_comment(auth_client, comment, delete_url):
 
     # Проверяем, что комментарий удален из базы
     assert Comment.objects.count() == 0
+
+
+def test_not_author_cannot_edit_comment(
+    not_author_client, comment, edit_url
+):
+    """Не-автор не может редактировать чужой комментарий."""
+    original_text = comment.text
+    response = not_author_client.post(edit_url, FORM_DATA)
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+    # Проверяем, что комментарий НЕ изменился
+    comment_from_db = Comment.objects.get(pk=comment.pk)
+    assert comment_from_db.text == original_text
+
+
+def test_not_author_cannot_delete_comment(
+    not_author_client, comment, delete_url
+):
+    """Не-автор не может удалить чужой комментарий."""
+    response = not_author_client.post(delete_url)
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+    # Проверяем, что комментарий НЕ удален
+    assert Comment.objects.count() == 1
