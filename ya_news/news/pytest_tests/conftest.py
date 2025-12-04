@@ -69,18 +69,15 @@ def edit_url(comment):
     """URL редактирования комментария."""
     return reverse('news:edit', args=[comment.id])
 
-
 @pytest.fixture
 def delete_url(comment):
     """URL удаления комментария."""
     return reverse('news:delete', args=[comment.id])
 
-
 @pytest.fixture
 def logout_url():
     """URL выхода из системы."""
     return reverse('users:logout')
-
 
 @pytest.fixture
 def multiple_news(db):
@@ -92,7 +89,6 @@ def multiple_news(db):
             News.objects.create(title=f'Новость {i}', text='Текст новости')
         )
     return news_list
-
 
 @pytest.fixture
 def news_with_dates(db):
@@ -116,7 +112,6 @@ def news_with_dates(db):
         date=now
     )
     return [news3, news2, news1]  # В порядке от новых к старым
-
 
 @pytest.fixture
 def comments_with_dates(db, author_user, news):
