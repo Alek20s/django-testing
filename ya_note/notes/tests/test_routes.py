@@ -12,7 +12,7 @@ from .test_base import (
 
 
 class TestRoutes(BaseTestCase):
-    
+
     def test_pages_availability(self):
         """Тест доступности страниц для разных пользователей."""
         urls = [
@@ -29,12 +29,12 @@ class TestRoutes(BaseTestCase):
             (self.note_edit_url, self.reader_client, HTTPStatus.NOT_FOUND),
             (self.note_delete_url, self.reader_client, HTTPStatus.NOT_FOUND),
         ]
-        
+      
         for url, client, expected_status in urls:
             with self.subTest(url=url, client=client):
                 response = client.get(url)
                 self.assertEqual(response.status_code, expected_status)
-    
+
     def test_redirects_for_anonymous(self):
         """Тест редиректов для анонимных пользователей."""
         urls = [
