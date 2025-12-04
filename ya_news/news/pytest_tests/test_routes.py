@@ -1,10 +1,7 @@
 from http import HTTPStatus
 
 import pytest
-from django.contrib.auth.models import User
 from django.urls import reverse
-
-from news.models import Comment, News
 
 pytestmark = pytest.mark.django_db
 
@@ -21,11 +18,13 @@ pytestmark = pytest.mark.django_db
         ('client', 'logout_url', 'post', HTTPStatus.OK),
     ]
 )
-def test_pages_availability(request, client_name, url_name, method, expected_status):
+def test_pages_availability(
+    request, client_name, url_name, method, expected_status
+):
     """Проверка доступности страниц для разных пользователей."""
     client_fixture = request.getfixturevalue(client_name)
     url_fixture = request.getfixturevalue(url_name)
-    
+
     if method == 'post':
         response = client_fixture.post(url_fixture)
     else:
