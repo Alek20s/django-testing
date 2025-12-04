@@ -69,15 +69,18 @@ def edit_url(comment):
     """URL редактирования комментария."""
     return reverse('news:edit', args=[comment.id])
 
+
 @pytest.fixture
 def delete_url(comment):
     """URL удаления комментария."""
     return reverse('news:delete', args=[comment.id])
 
+
 @pytest.fixture
 def logout_url():
     """URL выхода из системы."""
     return reverse('users:logout')
+
 
 @pytest.fixture
 def multiple_news(db):
@@ -90,12 +93,13 @@ def multiple_news(db):
         )
     return news_list
 
+
 @pytest.fixture
 def news_with_dates(db):
     """Создаёт три новости с разными датами для проверки сортировки."""
     from datetime import datetime, timedelta
     now = datetime.now()
-    
+
     news1 = News.objects.create(
         title='news1',
         text='text1',
@@ -113,26 +117,27 @@ def news_with_dates(db):
     )
     return [news3, news2, news1]  # В порядке от новых к старым
 
+
 @pytest.fixture
 def comments_with_dates(db, author_user, news):
     """Создаёт два комментария с разными датами для проверки сортировки."""
     from datetime import datetime, timedelta
-    
+
     old_time = datetime.now() - timedelta(days=1)
     new_time = datetime.now()
-    
+
     comment_old = Comment.objects.create(
         news=news,
         author=author_user,
         text='Old comment',
         created=old_time
     )
-    
+
     comment_new = Comment.objects.create(
         news=news,
         author=author_user,
         text='New comment',
         created=new_time
     )
-    
+
     return [comment_old, comment_new]  # В хронологическом порядке
