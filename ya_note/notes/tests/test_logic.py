@@ -12,11 +12,11 @@ class TestLogic(BaseTestCase):
             'text': 'New text',
             'slug': 'new-slug'
         }
-    
+
         self.author_client.post(ADD_URL, data=form_data)
-  
+ 
         self.assertEqual(Note.objects.count(), 2)
-  
+
         new_note = Note.objects.get(slug='new-slug')
         self.assertEqual(new_note.title, form_data['title'])
         self.assertEqual(new_note.text, form_data['text'])
@@ -29,9 +29,9 @@ class TestLogic(BaseTestCase):
             'text': 'Another text',
             'slug': self.note.slug
         }
-   
+
         self.author_client.post(ADD_URL, data=form_data)
- 
+
         self.assertEqual(Note.objects.count(), 1)
 
     def test_slug_is_generated_automatically_if_not_provided(self):
@@ -41,7 +41,7 @@ class TestLogic(BaseTestCase):
         }
 
         self.author_client.post(ADD_URL, data=form_data)
-        
+   
         self.assertEqual(Note.objects.count(), 2)
 
         new_note = Note.objects.get(title='Моя заметка')
@@ -79,7 +79,7 @@ class TestLogic(BaseTestCase):
 
     def test_user_can_delete_own_note(self):
         self.author_client.post(self.note_delete_url)
- 
+
         self.assertEqual(Note.objects.count(), 0)
 
     def test_user_cannot_edit_other_user_note(self):
