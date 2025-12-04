@@ -126,7 +126,7 @@ def comments_with_dates(db, author_user, news):
             news=news,
             author=author_user,
             text=f'Comment {i}',
-            created=now - timedelta(days=221-i)
+            created=now - timedelta(days=221 - i)
         )
         for i in range(222)
     ]
