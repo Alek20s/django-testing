@@ -5,11 +5,11 @@ from .test_base import BaseTestCase, ADD_URL, LIST_URL
 
 
 class TestContent(BaseTestCase):
-  
+
     def test_forms_available_on_pages(self):
         """Проверка наличия формы на страницах добавления и редактирования."""
         urls = [ADD_URL, self.note_edit_url]
-    
+
         for url in urls:
             with self.subTest(url=url):
                 response = self.author_client.get(url)
