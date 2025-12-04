@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.test import Client, TestCase  
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from notes.models import Note
@@ -34,7 +34,7 @@ FORM_DATA = {
 
 class BaseTestCase(TestCase):
     """Базовый класс для всех тестов ya_note."""
-    
+  
     @classmethod
     def setUpTestData(cls):
         """Создание тестовых данных один раз для всего класса."""
@@ -46,18 +46,18 @@ class BaseTestCase(TestCase):
             username=READER_USERNAME,
             password=PASSWORD
         )
-        
+
         cls.note = Note.objects.create(
             title=NOTE_TITLE,
             text=NOTE_TEXT,
             slug=NOTE_SLUG,
             author=cls.author
         )
-        
+  
         cls.note_detail_url = reverse('notes:detail', args=[NOTE_SLUG])
         cls.note_edit_url = reverse('notes:edit', args=[NOTE_SLUG])
         cls.note_delete_url = reverse('notes:delete', args=[NOTE_SLUG])
-    
+
     def setUp(self):
         """Создание клиентов для каждого теста."""
         self.client = Client()
@@ -65,3 +65,4 @@ class BaseTestCase(TestCase):
         self.author_client.force_login(self.author)
         self.reader_client = Client()
         self.reader_client.force_login(self.reader)
+
