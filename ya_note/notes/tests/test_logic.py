@@ -9,7 +9,7 @@ class TestLogic(BaseTestCase):
 
     def test_authenticated_user_can_create_note(self):
         initial_count = Note.objects.count()
-        
+
         self.author_client.post(ADD_URL, data=self.form_data)
 
         self.assertEqual(Note.objects.count(), initial_count + 1)
@@ -37,7 +37,7 @@ class TestLogic(BaseTestCase):
         del form_data['slug']
 
         initial_count = Note.objects.count()
-        
+
         self.author_client.post(ADD_URL, data=form_data)
 
         self.assertEqual(Note.objects.count(), initial_count + 1)
@@ -51,7 +51,7 @@ class TestLogic(BaseTestCase):
 
     def test_anonymous_user_cannot_create_note(self):
         notes_before = set(Note.objects.values_list('id', flat=True))
-        
+
         self.client.post(ADD_URL, data=self.form_data)
 
         notes_after = set(Note.objects.values_list('id', flat=True))
