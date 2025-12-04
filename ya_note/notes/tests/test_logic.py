@@ -71,7 +71,7 @@ class TestLogic(BaseTestCase):
 
     def test_user_can_delete_own_note(self):
         initial_count = Note.objects.count()
-        
+
         self.author_client.post(NOTE_DELETE_URL)
 
         self.assertEqual(Note.objects.count(), initial_count - 1)
