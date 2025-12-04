@@ -65,4 +65,3 @@ class BaseTestCase(TestCase):
         self.author_client.force_login(self.author)
         self.reader_client = Client()
         self.reader_client.force_login(self.reader)
-        
