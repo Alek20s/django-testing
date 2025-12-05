@@ -50,7 +50,7 @@ class BaseTestCase(TestCase):
             author=cls.author
         )
 
-        # Данные для создания новой заметки (отличаются от существующей)
+        # Данные для создания новой заметки
         cls.form_data = {
             'title': 'New Note',
             'text': 'New text',
