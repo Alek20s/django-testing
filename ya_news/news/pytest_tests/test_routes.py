@@ -47,6 +47,6 @@ def test_pages_availability(test_client, test_url, method, expected_status):
 def test_redirect_to_login(client, test_url, redirect_url):
     """Проверка редиректа на страницу логина для анонимных пользователей."""
     response = client.get(test_url)
-    
+
     assert response.status_code == FOUND
     assert response.url == redirect_url
