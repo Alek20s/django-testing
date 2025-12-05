@@ -5,6 +5,9 @@ from django.urls import reverse
 from notes.models import Note
 
 
+# Константа для slug заметки
+NOTE_SLUG = 'existing-slug'
+
 # Константы URL (без параметров)
 HOME_URL = reverse('notes:home')
 LIST_URL = reverse('notes:list')
@@ -15,9 +18,9 @@ SIGNUP_URL = reverse('users:signup')
 LOGOUT_URL = reverse('users:logout')
 
 # Константы URL (с параметрами)
-NOTE_DETAIL_URL = reverse('notes:detail', args=['existing-slug'])
-NOTE_EDIT_URL = reverse('notes:edit', args=['existing-slug'])
-NOTE_DELETE_URL = reverse('notes:delete', args=['existing-slug'])
+NOTE_DETAIL_URL = reverse('notes:detail', args=[NOTE_SLUG])
+NOTE_EDIT_URL = reverse('notes:edit', args=[NOTE_SLUG])
+NOTE_DELETE_URL = reverse('notes:delete', args=[NOTE_SLUG])
 
 # URL для редиректов
 LIST_REDIRECT_URL = f'{LOGIN_URL}?next={LIST_URL}'
@@ -46,7 +49,7 @@ class BaseTestCase(TestCase):
         cls.note = Note.objects.create(
             title='Existing Note',
             text='Existing text',
-            slug='existing-slug',
+            slug=NOTE_SLUG,
             author=cls.author
         )
 

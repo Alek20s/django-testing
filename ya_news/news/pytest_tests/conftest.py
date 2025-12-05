@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import time
 
 import pytest
 from django.conf import settings
@@ -90,43 +91,42 @@ def login_url():
 
 
 @pytest.fixture
+def edit_redirect_url(login_url, edit_url):
+    """URL редиректа на логин для edit."""
+    return f'{login_url}?next={edit_url}'
+
+
+@pytest.fixture
+def delete_redirect_url(login_url, delete_url):
+    """URL редиректа на логин для delete."""
+    return f'{login_url}?next={delete_url}'
+
+
+@pytest.fixture
 def multiple_news(db):
     """Создаёт новости для проверки пагинации."""
     now = datetime.now()
-    return [
-        News.objects.create(
+    news_list = [
+        News(
             title=f'Новость {i}',
             text='Текст новости',
             date=now - timedelta(days=i)
         )
         for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 5)
     ]
-
-
-@pytest.fixture
-def news_with_dates(db):
-    """Создаёт три новости с разными датами для проверки сортировки."""
-    now = datetime.now()
-    return [
-        News.objects.create(
-            title=f'Новость {i}',
-            text='Текст новости',
-            date=now - timedelta(days=i)
-        )
-        for i in range(3)
-    ]
+    return News.objects.bulk_create(news_list)
 
 
 @pytest.fixture
 def comments_with_dates(db, author_user, news):
     """Создаёт 222 комментария с разными датами для проверки сортировки."""
-    now = datetime.now()
-    return [
-        Comment.objects.create(
+    comments = []
+    for i in range(222):
+        comment = Comment.objects.create(
             news=news,
             author=author_user,
-            text=f'Comment {i}',
-            created=now - timedelta(days=221 - i)
+            text=f'Comment {i}'
         )
-        for i in range(222)
-    ]
+        comments.append(comment)
+        time.sleep(0.001)
+    return comments

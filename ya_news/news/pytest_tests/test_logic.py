@@ -9,6 +9,7 @@ pytestmark = pytest.mark.django_db
 
 # Form data constants
 FORM_DATA = {'text': 'Test comment'}
+BAD_WORDS_DATA = [{'text': f'This is {word} word'} for word in BAD_WORDS]
 
 
 def test_authenticated_user_can_add_comment(
@@ -31,11 +32,10 @@ def test_anonymous_user_cannot_add_comment(client, news, detail_url):
     assert Comment.objects.count() == 0
 
 
-@pytest.mark.parametrize('bad_word', BAD_WORDS)
+@pytest.mark.parametrize('bad_word_data', BAD_WORDS_DATA)
 def test_comment_with_forbidden_words_not_published(
-    auth_client, news, detail_url, bad_word
+    auth_client, news, detail_url, bad_word_data
 ):
-    bad_word_data = {'text': f'This is {bad_word} word'}
     response = auth_client.post(detail_url, bad_word_data)
 
     # комментарий НЕ должен создаться
@@ -55,6 +55,8 @@ def test_author_can_edit_own_comment(
     # Read fresh from database and check text field
     updated_comment = Comment.objects.get(pk=comment.pk)
     assert updated_comment.text == FORM_DATA['text']
+    assert updated_comment.author == comment.author
+    assert updated_comment.news == comment.news
 
 
 def test_author_can_delete_own_comment(auth_client, comment, delete_url):
@@ -77,6 +79,8 @@ def test_not_author_cannot_edit_comment(
     # Проверяем, что комментарий НЕ изменился
     comment_from_db = Comment.objects.get(pk=comment.pk)
     assert comment_from_db.text == original_text
+    assert comment_from_db.author == comment.author
+    assert comment_from_db.news == comment.news
 
 
 def test_not_author_cannot_delete_comment(
@@ -88,3 +92,7 @@ def test_not_author_cannot_delete_comment(
 
     # Проверяем, что комментарий НЕ удален
     assert Comment.objects.count() == 1
+    comment_from_db = Comment.objects.get(pk=comment.pk)
+    assert comment_from_db.text == comment.text
+    assert comment_from_db.author == comment.author
+    assert comment_from_db.news == comment.news

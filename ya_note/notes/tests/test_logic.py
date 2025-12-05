@@ -8,13 +8,11 @@ from .test_base import BaseTestCase, ADD_URL, NOTE_EDIT_URL, NOTE_DELETE_URL
 class TestLogic(BaseTestCase):
 
     def test_authenticated_user_can_create_note(self):
-        initial_count = Note.objects.count()
-
+        old_ids = set(Note.objects.values_list('id', flat=True))
         self.author_client.post(ADD_URL, data=self.form_data)
-
-        self.assertEqual(Note.objects.count(), initial_count + 1)
-
-        new_note = Note.objects.get(slug=self.form_data['slug'])
+        new_notes = Note.objects.exclude(id__in=old_ids)
+        self.assertEqual(new_notes.count(), 1)
+        new_note = new_notes.get()
         self.assertEqual(new_note.title, self.form_data['title'])
         self.assertEqual(new_note.text, self.form_data['text'])
         self.assertEqual(new_note.slug, self.form_data['slug'])
@@ -24,25 +22,23 @@ class TestLogic(BaseTestCase):
         form_data = self.form_data.copy()
         form_data['slug'] = self.note.slug
 
-        notes_before = set(Note.objects.values_list('id', flat=True))
-
+        old_ids = set(Note.objects.values_list('id', flat=True))
         self.author_client.post(ADD_URL, data=form_data)
+        new_ids = set(Note.objects.values_list('id', flat=True))
 
-        notes_after = set(Note.objects.values_list('id', flat=True))
-        self.assertEqual(notes_before, notes_after)
-
+        self.assertEqual(old_ids, new_ids)
+ 
     def test_slug_is_generated_automatically_if_not_provided(self):
         form_data = self.form_data.copy()
         form_data['title'] = 'Моя заметка'
         del form_data['slug']
 
-        initial_count = Note.objects.count()
-
+        old_ids = set(Note.objects.values_list('id', flat=True))
         self.author_client.post(ADD_URL, data=form_data)
+        new_notes = Note.objects.exclude(id__in=old_ids)
+        self.assertEqual(new_notes.count(), 1)
 
-        self.assertEqual(Note.objects.count(), initial_count + 1)
-
-        new_note = Note.objects.get(title='Моя заметка')
+        new_note = new_notes.get()
         expected_slug = slugify(form_data['title'])
         self.assertEqual(new_note.title, form_data['title'])
         self.assertEqual(new_note.text, form_data['text'])
@@ -50,12 +46,10 @@ class TestLogic(BaseTestCase):
         self.assertEqual(new_note.slug, expected_slug)
 
     def test_anonymous_user_cannot_create_note(self):
-        notes_before = set(Note.objects.values_list('id', flat=True))
-
+        old_ids = set(Note.objects.values_list('id', flat=True))
         self.client.post(ADD_URL, data=self.form_data)
-
-        notes_after = set(Note.objects.values_list('id', flat=True))
-        self.assertEqual(notes_before, notes_after)
+        new_ids = set(Note.objects.values_list('id', flat=True))
+        self.assertEqual(old_ids, new_ids)
 
     def test_user_can_edit_own_note(self):
         form_data = self.form_data.copy()
