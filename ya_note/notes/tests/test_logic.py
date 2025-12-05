@@ -27,7 +27,7 @@ class TestLogic(BaseTestCase):
         new_ids = set(Note.objects.values_list('id', flat=True))
 
         self.assertEqual(old_ids, new_ids)
- 
+
     def test_slug_is_generated_automatically_if_not_provided(self):
         form_data = self.form_data.copy()
         form_data['title'] = 'Моя заметка'
