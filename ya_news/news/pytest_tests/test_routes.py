@@ -52,8 +52,8 @@ def test_redirect_to_login(request, client, url_name, redirect_url_name):
     """Проверка редиректа на страницу логина для анонимных пользователей."""
     url_fixture = request.getfixturevalue(url_name)
     redirect_url_fixture = request.getfixturevalue(redirect_url_name)
-    
+
     response = client.get(url_fixture)
-    
+
     assert response.status_code == FOUND
     assert response.url == redirect_url_fixture
