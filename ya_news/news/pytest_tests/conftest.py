@@ -101,7 +101,7 @@ def delete_redirect_url(login_url, delete_url):
     """URL редиректа на логин для delete."""
     return f'{login_url}?next={delete_url}'
 
-#
+
 @pytest.fixture
 def multiple_news(db):
     """Создаёт новости для проверки пагинации."""
@@ -113,7 +113,7 @@ def multiple_news(db):
         )
         for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 5)
     ])
-#
+
 
 @pytest.fixture
 def comments_with_dates(db, author_user, news):
@@ -127,4 +127,3 @@ def comments_with_dates(db, author_user, news):
         )
         comment.created = base_time + timedelta(seconds=i)
         comment.save()
-#
