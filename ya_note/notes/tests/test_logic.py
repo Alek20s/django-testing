@@ -23,7 +23,10 @@ class TestLogic(BaseTestCase):
 
         old_ids = set(Note.objects.values_list('id', flat=True))
         self.author_client.post(ADD_URL, data=self.form_data)
-        self.assertEqual(old_ids, set(Note.objects.values_list('id', flat=True)))
+        self.assertEqual(
+            old_ids,
+            set(Note.objects.values_list('id', flat=True)),
+        )
 
     def test_slug_is_generated_automatically_if_not_provided(self):
         del self.form_data['slug']
@@ -43,16 +46,19 @@ class TestLogic(BaseTestCase):
     def test_anonymous_user_cannot_create_note(self):
         old_ids = set(Note.objects.values_list('id', flat=True))
         self.client.post(ADD_URL, data=self.form_data)
-        self.assertEqual(old_ids, set(Note.objects.values_list('id', flat=True)))
+        self.assertEqual(
+            old_ids,
+            set(Note.objects.values_list('id', flat=True)),
+        )
 
     def test_user_can_edit_own_note(self):
-            original_author = self.note.author
-            self.author_client.post(NOTE_EDIT_URL, data=self.form_data)
-            note_from_db = Note.objects.get(id=self.note.id)
-            self.assertEqual(note_from_db.title, self.form_data['title'])
-            self.assertEqual(note_from_db.text, self.form_data['text'])
-            self.assertEqual(note_from_db.slug, self.form_data['slug'])
-            self.assertEqual(note_from_db.author, original_author)
+        original_author = self.note.author
+        self.author_client.post(NOTE_EDIT_URL, data=self.form_data)
+        note_from_db = Note.objects.get(id=self.note.id)
+        self.assertEqual(note_from_db.title, self.form_data['title'])
+        self.assertEqual(note_from_db.text, self.form_data['text'])
+        self.assertEqual(note_from_db.slug, self.form_data['slug'])
+        self.assertEqual(note_from_db.author, original_author)
 
     def test_user_can_delete_own_note(self):
         initial_count = Note.objects.count()
@@ -67,10 +73,10 @@ class TestLogic(BaseTestCase):
         original_text = self.note.text
         original_slug = self.note.slug
         original_author = self.note.author
-        
+
         self.reader_client.post(NOTE_EDIT_URL, data=self.form_data)
         note_from_db = Note.objects.get(id=self.note.id)
-        
+
         self.assertEqual(note_from_db.title, original_title)
         self.assertEqual(note_from_db.text, original_text)
         self.assertEqual(note_from_db.slug, original_slug)
