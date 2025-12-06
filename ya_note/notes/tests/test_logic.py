@@ -50,41 +50,35 @@ class TestLogic(BaseTestCase):
         self.client.post(ADD_URL, data=self.form_data)
         new_ids = set(Note.objects.values_list('id', flat=True))
         self.assertEqual(old_ids, new_ids)
-
+#
     def test_user_can_edit_own_note(self):
-        form_data = self.form_data.copy()
-        form_data['slug'] = self.note.slug
-
-        self.author_client.post(NOTE_EDIT_URL, data=form_data)
-
-        updated_note = Note.objects.get(slug=self.note.slug)
-        self.assertEqual(updated_note.title, form_data['title'])
-        self.assertEqual(updated_note.text, form_data['text'])
-        self.assertEqual(updated_note.slug, form_data['slug'])
-        self.assertEqual(updated_note.author, self.note.author)
-
+        self.author_client.post(NOTE_EDIT_URL, data=self.form_data)
+        self.note.refresh_from_db()
+        self.assertEqual(self.note.title, self.form_data['title'])
+        self.assertEqual(self.note.text, self.form_data['text'])
+        self.assertEqual(self.note.slug, self.form_data['slug'])
+        self.assertEqual(self.note.author, self.author)
+#
     def test_user_can_delete_own_note(self):
         initial_count = Note.objects.count()
 
         self.author_client.post(NOTE_DELETE_URL)
 
+        self.assertFalse(Note.objects.filter(id=self.note.id).exists())
         self.assertEqual(Note.objects.count(), initial_count - 1)
 
     def test_user_cannot_edit_other_user_note(self):
-        form_data = self.form_data.copy()
-        form_data['slug'] = self.note.slug
-
-        self.reader_client.post(NOTE_EDIT_URL, data=form_data)
-
-        unchanged_note = Note.objects.get(slug=self.note.slug)
-        self.assertEqual(unchanged_note.title, self.note.title)
-        self.assertEqual(unchanged_note.text, self.note.text)
-        self.assertEqual(unchanged_note.slug, self.note.slug)
-        self.assertEqual(unchanged_note.author, self.note.author)
+        self.reader_client.post(NOTE_EDIT_URL, data=self.form_data)
+        self.note.refresh_from_db()
+        self.assertEqual(self.note.title, self.note.title)
+        self.assertEqual(self.note.text, self.note.text)
+        self.assertEqual(self.note.slug, self.note.slug)
+        self.assertEqual(self.note.author, self.note.author)
 
     def test_user_cannot_delete_other_user_note(self):
         self.reader_client.post(NOTE_DELETE_URL)
 
+        self.assertTrue(Note.objects.filter(id=self.note.id).exists())
         note_in_db = Note.objects.get(id=self.note.id)
         self.assertEqual(note_in_db.title, self.note.title)
         self.assertEqual(note_in_db.text, self.note.text)

@@ -1,6 +1,6 @@
-from .test_base import BaseTestCase, ADD_URL, LIST_URL, NOTE_EDIT_URL
-
 from notes.forms import NoteForm
+
+from .test_base import BaseTestCase, ADD_URL, LIST_URL, NOTE_EDIT_URL
 
 
 class TestContent(BaseTestCase):
@@ -20,6 +20,16 @@ class TestContent(BaseTestCase):
         notes = response.context['object_list']
         self.assertIn(self.note, notes)
         note = notes[0]
+        self.assertEqual(note.title, self.note.title)
+        self.assertEqual(note.text, self.note.text)
+        self.assertEqual(note.slug, self.note.slug)
+        self.assertEqual(note.author, self.note.author)
+#
+    def test_note_appears_in_notes_list(self):
+        response = self.author_client.get(LIST_URL)
+        notes = response.context['object_list']
+        self.assertIn(self.note, notes)
+        note = next(note for note in notes if note.id == self.note.id)
         self.assertEqual(note.title, self.note.title)
         self.assertEqual(note.text, self.note.text)
         self.assertEqual(note.slug, self.note.slug)

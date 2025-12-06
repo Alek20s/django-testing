@@ -52,7 +52,6 @@ def test_author_can_edit_own_comment(
     response = auth_client.post(edit_url, FORM_DATA)
     assert response.status_code == HTTPStatus.FOUND
 
-    # Read fresh from database and check text field
     updated_comment = Comment.objects.get(pk=comment.pk)
     assert updated_comment.text == FORM_DATA['text']
     assert updated_comment.author == comment.author

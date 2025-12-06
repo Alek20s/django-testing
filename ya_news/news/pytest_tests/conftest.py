@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
-import time
 
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 
 from news.models import Comment, News
 
@@ -101,32 +101,30 @@ def delete_redirect_url(login_url, delete_url):
     """URL редиректа на логин для delete."""
     return f'{login_url}?next={delete_url}'
 
-
+#
 @pytest.fixture
 def multiple_news(db):
     """Создаёт новости для проверки пагинации."""
-    now = datetime.now()
-    news_list = [
+    return News.objects.bulk_create([
         News(
             title=f'Новость {i}',
             text='Текст новости',
-            date=now - timedelta(days=i)
+            date=datetime.now() - timedelta(days=i)
         )
         for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 5)
-    ]
-    return News.objects.bulk_create(news_list)
-
+    ])
+#
 
 @pytest.fixture
 def comments_with_dates(db, author_user, news):
     """Создаёт 222 комментария с разными датами для проверки сортировки."""
-    comments = []
+    base_time = timezone.now()
     for i in range(222):
         comment = Comment.objects.create(
             news=news,
             author=author_user,
             text=f'Comment {i}'
         )
-        comments.append(comment)
-        time.sleep(0.001)
-    return comments
+        comment.created = base_time + timedelta(seconds=i)
+        comment.save()
+#
