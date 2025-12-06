@@ -50,7 +50,7 @@ class TestLogic(BaseTestCase):
         self.client.post(ADD_URL, data=self.form_data)
         new_ids = set(Note.objects.values_list('id', flat=True))
         self.assertEqual(old_ids, new_ids)
-#
+
     def test_user_can_edit_own_note(self):
         self.author_client.post(NOTE_EDIT_URL, data=self.form_data)
         self.note.refresh_from_db()
@@ -58,7 +58,7 @@ class TestLogic(BaseTestCase):
         self.assertEqual(self.note.text, self.form_data['text'])
         self.assertEqual(self.note.slug, self.form_data['slug'])
         self.assertEqual(self.note.author, self.author)
-#
+
     def test_user_can_delete_own_note(self):
         initial_count = Note.objects.count()
 
