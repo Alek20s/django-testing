@@ -16,16 +16,25 @@ POST = 'post'
 @pytest.mark.parametrize(
     'client_name, url_name, method, expected_status',
     [
-        (pytest.lazy_fixture('client'), pytest.lazy_fixture('home_url'), GET, OK),
-        (pytest.lazy_fixture('client'), pytest.lazy_fixture('detail_url'), GET, OK),
-        (pytest.lazy_fixture('auth_client'), pytest.lazy_fixture('edit_url'), GET, OK),
-        (pytest.lazy_fixture('auth_client'), pytest.lazy_fixture('delete_url'), GET, OK),
-        (pytest.lazy_fixture('not_author_client'), pytest.lazy_fixture('edit_url'), GET, NOT_FOUND),
-        (pytest.lazy_fixture('not_author_client'), pytest.lazy_fixture('delete_url'), GET, NOT_FOUND),
-        (pytest.lazy_fixture('client'), pytest.lazy_fixture('logout_url'), POST, OK),
+        (pytest.lazy_fixture('client'), pytest.lazy_fixture('home_url'),
+         GET, OK),
+        (pytest.lazy_fixture('client'), pytest.lazy_fixture('detail_url'),
+         GET, OK),
+        (pytest.lazy_fixture('auth_client'),
+         pytest.lazy_fixture('edit_url'), GET, OK),
+        (pytest.lazy_fixture('auth_client'),
+         pytest.lazy_fixture('delete_url'), GET, OK),
+        (pytest.lazy_fixture('not_author_client'),
+         pytest.lazy_fixture('edit_url'), GET, NOT_FOUND),
+        (pytest.lazy_fixture('not_author_client'),
+         pytest.lazy_fixture('delete_url'), GET, NOT_FOUND),
+        (pytest.lazy_fixture('client'), pytest.lazy_fixture('logout_url'),
+         POST, OK),
         # случаи перенаправления для анонимного клиента
-        (pytest.lazy_fixture('client'), pytest.lazy_fixture('edit_url'), GET, FOUND),
-        (pytest.lazy_fixture('client'), pytest.lazy_fixture('delete_url'), GET, FOUND),
+        (pytest.lazy_fixture('client'), pytest.lazy_fixture('edit_url'),
+         GET, FOUND),
+        (pytest.lazy_fixture('client'), pytest.lazy_fixture('delete_url'),
+         GET, FOUND),
     ]
 )
 def test_pages_availability(client_name, url_name, method, expected_status):
@@ -44,8 +53,10 @@ def test_pages_availability(client_name, url_name, method, expected_status):
 @pytest.mark.parametrize(
     'url_name, redirect_url_name',
     [
-        (pytest.lazy_fixture('edit_url'), pytest.lazy_fixture('edit_redirect_url')),
-        (pytest.lazy_fixture('delete_url'), pytest.lazy_fixture('delete_redirect_url')),
+        (pytest.lazy_fixture('edit_url'),
+         pytest.lazy_fixture('edit_redirect_url')),
+        (pytest.lazy_fixture('delete_url'),
+         pytest.lazy_fixture('delete_redirect_url')),
     ]
 )
 def test_redirect_to_login(client, url_name, redirect_url_name):
