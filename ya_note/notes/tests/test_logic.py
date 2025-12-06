@@ -19,45 +19,40 @@ class TestLogic(BaseTestCase):
         self.assertEqual(new_note.author, self.author)
 
     def test_cannot_create_two_notes_with_same_slug(self):
-        form_data = self.form_data.copy()
-        form_data['slug'] = self.note.slug
+        self.form_data['slug'] = self.note.slug
 
         old_ids = set(Note.objects.values_list('id', flat=True))
-        self.author_client.post(ADD_URL, data=form_data)
-        new_ids = set(Note.objects.values_list('id', flat=True))
-
-        self.assertEqual(old_ids, new_ids)
+        self.author_client.post(ADD_URL, data=self.form_data)
+        self.assertEqual(old_ids, set(Note.objects.values_list('id', flat=True)))
 
     def test_slug_is_generated_automatically_if_not_provided(self):
-        form_data = self.form_data.copy()
-        form_data['title'] = 'Моя заметка'
-        del form_data['slug']
+        del self.form_data['slug']
 
         old_ids = set(Note.objects.values_list('id', flat=True))
-        self.author_client.post(ADD_URL, data=form_data)
+        self.author_client.post(ADD_URL, data=self.form_data)
         new_notes = Note.objects.exclude(id__in=old_ids)
         self.assertEqual(new_notes.count(), 1)
 
         new_note = new_notes.get()
-        expected_slug = slugify(form_data['title'])
-        self.assertEqual(new_note.title, form_data['title'])
-        self.assertEqual(new_note.text, form_data['text'])
+        expected_slug = slugify(self.form_data['title'])
+        self.assertEqual(new_note.title, self.form_data['title'])
+        self.assertEqual(new_note.text, self.form_data['text'])
         self.assertEqual(new_note.author, self.author)
         self.assertEqual(new_note.slug, expected_slug)
 
     def test_anonymous_user_cannot_create_note(self):
         old_ids = set(Note.objects.values_list('id', flat=True))
         self.client.post(ADD_URL, data=self.form_data)
-        new_ids = set(Note.objects.values_list('id', flat=True))
-        self.assertEqual(old_ids, new_ids)
+        self.assertEqual(old_ids, set(Note.objects.values_list('id', flat=True)))
 
     def test_user_can_edit_own_note(self):
-        self.author_client.post(NOTE_EDIT_URL, data=self.form_data)
-        self.note.refresh_from_db()
-        self.assertEqual(self.note.title, self.form_data['title'])
-        self.assertEqual(self.note.text, self.form_data['text'])
-        self.assertEqual(self.note.slug, self.form_data['slug'])
-        self.assertEqual(self.note.author, self.author)
+            original_author = self.note.author
+            self.author_client.post(NOTE_EDIT_URL, data=self.form_data)
+            note_from_db = Note.objects.get(id=self.note.id)
+            self.assertEqual(note_from_db.title, self.form_data['title'])
+            self.assertEqual(note_from_db.text, self.form_data['text'])
+            self.assertEqual(note_from_db.slug, self.form_data['slug'])
+            self.assertEqual(note_from_db.author, original_author)
 
     def test_user_can_delete_own_note(self):
         initial_count = Note.objects.count()
@@ -68,12 +63,18 @@ class TestLogic(BaseTestCase):
         self.assertEqual(Note.objects.count(), initial_count - 1)
 
     def test_user_cannot_edit_other_user_note(self):
+        original_title = self.note.title
+        original_text = self.note.text
+        original_slug = self.note.slug
+        original_author = self.note.author
+        
         self.reader_client.post(NOTE_EDIT_URL, data=self.form_data)
-        self.note.refresh_from_db()
-        self.assertEqual(self.note.title, self.note.title)
-        self.assertEqual(self.note.text, self.note.text)
-        self.assertEqual(self.note.slug, self.note.slug)
-        self.assertEqual(self.note.author, self.note.author)
+        note_from_db = Note.objects.get(id=self.note.id)
+        
+        self.assertEqual(note_from_db.title, original_title)
+        self.assertEqual(note_from_db.text, original_text)
+        self.assertEqual(note_from_db.slug, original_slug)
+        self.assertEqual(note_from_db.author, original_author)
 
     def test_user_cannot_delete_other_user_note(self):
         self.reader_client.post(NOTE_DELETE_URL)

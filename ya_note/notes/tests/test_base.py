@@ -59,10 +59,7 @@ class BaseTestCase(TestCase):
             'text': 'New text',
             'slug': 'new-slug',
         }
-
-    def setUp(self):
-        """Создание клиентов для каждого теста."""
-        self.author_client = Client()
-        self.author_client.force_login(self.author)
-        self.reader_client = Client()
-        self.reader_client.force_login(self.reader)
+        cls.author_client = Client()
+        cls.author_client.force_login(cls.author)
+        cls.reader_client = Client()
+        cls.reader_client.force_login(cls.reader)

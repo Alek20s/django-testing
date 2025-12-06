@@ -105,14 +105,14 @@ def delete_redirect_url(login_url, delete_url):
 @pytest.fixture
 def multiple_news(db):
     """Создаёт новости для проверки пагинации."""
-    return News.objects.bulk_create([
+    return News.objects.bulk_create(
         News(
             title=f'Новость {i}',
             text='Текст новости',
             date=datetime.now() - timedelta(days=i)
         )
         for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 5)
-    ])
+    )
 
 
 @pytest.fixture
