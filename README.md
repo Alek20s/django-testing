@@ -1,8 +1,3 @@
-
-
-**Если все проверки успешно выполнились, проект можно отправлять на ревью.**
-
-
 # Django Automated Testing
 
 A Python project demonstrating automated testing of Django web applications. The repository contains tests for two applications: **YaNews** and **YaNote**.
